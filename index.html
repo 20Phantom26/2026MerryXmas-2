@@ -1,0 +1,1765 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#081426">
+<title>Merry Christmas — A night full of light and miracles</title>
+
+<style>
+:root {
+  --night: #081426;
+  --blue: #10213D;
+  --ice: #CFE8FF;
+  --white: #EAF5FF;
+  --gold: #e9cf91;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--night);
+  color: var(--white);
+  font-family: Georgia, "Noto Serif TC", serif;
+  touch-action: none;
+}
+canvas { display: block; width: 100%; height: 100%; }
+
+/* 開場 */
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(ellipse at 50% 72%, rgba(91,151,204,.10), transparent 44%),
+    linear-gradient(180deg, #030916 0%, #081426 75%, #0b1b30 100%);
+  transition: opacity 1.5s ease, visibility 1.5s ease;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#intro::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(207,232,255,.28), transparent);
+  box-shadow: 0 0 16px rgba(160,210,255,.12);
+}
+.intro-title {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(30px, 6vw, 62px);
+  font-weight: 400;
+  letter-spacing: .16em;
+  color: #e7f4ff;
+  text-shadow: 0 0 18px rgba(165,211,255,.20);
+  margin: 0 0 18px;
+}
+.intro-subtitle {
+  position: relative;
+  z-index: 1;
+  font-size: clamp(10px, 2vw, 14px);
+  letter-spacing: .23em;
+  color: #b8d5ef;
+  opacity: .82;
+}
+.intro-hint {
+  position: absolute;
+  z-index: 1;
+  bottom: 17%;
+  color: #c6e1f7;
+  font: 12px system-ui, sans-serif;
+  letter-spacing: .25em;
+  text-shadow: 0 0 12px rgba(175,220,255,.45);
+  animation: hintPulse 2.2s ease-in-out infinite;
+}
+@keyframes hintPulse {
+  0%,100% { opacity: .38; }
+  50% { opacity: .95; }
+}
+#intro.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 操作提示 */
+#tips {
+  position: fixed;
+  z-index: 5;
+  bottom: 17px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(215,235,255,.62);
+  font: 10px/1.6 system-ui, sans-serif;
+  letter-spacing: .08em;
+  text-align: center;
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 1s;
+}
+#tips.visible { opacity: 1; }
+
+/* 祝福信封 */
+#letterOverlay {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(2,8,20,.78);
+  backdrop-filter: blur(9px);
+  touch-action: manipulation;
+}
+#letterOverlay.open { display: flex; }
+.letter-card {
+  width: min(92vw, 420px);
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 20px 18px 18px;
+  border: 1px solid rgba(199,226,255,.38);
+  border-radius: 16px;
+  background: linear-gradient(155deg, #142c49, #09182b 80%);
+  box-shadow: 0 18px 70px rgba(0,0,0,.55), 0 0 28px rgba(119,183,238,.13);
+  text-align: center;
+}
+.letter-heading {
+  color: #e8f5ff;
+  font-size: 19px;
+  letter-spacing: .16em;
+  margin: 0 0 5px;
+  font-weight: 400;
+}
+.letter-caption {
+  color: #a9c7e4;
+  font: 10px system-ui, sans-serif;
+  letter-spacing: .17em;
+  margin-bottom: 14px;
+}
+#blessingCanvas {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  margin: 0 auto 15px;
+  border-radius: 9px;
+  box-shadow: 0 5px 24px rgba(0,0,0,.35);
+}
+.letter-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.letter-buttons button {
+  border: 1px solid rgba(205,231,255,.35);
+  border-radius: 30px;
+  padding: 10px 15px;
+  color: #eaf5ff;
+  background: rgba(123,171,215,.13);
+  font-size: 12px;
+  letter-spacing: .08em;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.letter-buttons button.primary {
+  background: linear-gradient(135deg, #d5eaff, #8db9df);
+  color: #10213d;
+  border-color: transparent;
+}
+.letter-buttons button:active { transform: scale(.97); }
+
+/* 小提示 */
+#toast {
+  position: fixed;
+  z-index: 40;
+  left: 50%;
+  bottom: 55px;
+  transform: translate(-50%, 12px);
+  opacity: 0;
+  pointer-events: none;
+  padding: 9px 16px;
+  border-radius: 30px;
+  color: #eaf5ff;
+  background: rgba(9,25,45,.9);
+  border: 1px solid rgba(200,230,255,.2);
+  font: 11px system-ui, sans-serif;
+  transition: .3s;
+}
+#toast.show { opacity: 1; transform: translate(-50%,0); }
+</style>
+</head>
+
+<body>
+
+<div id="intro">
+  <h1 class="intro-title">Merry Christmas</h1>
+  <div class="intro-subtitle">A night full of light and miracles</div>
+  <div class="intro-hint">輕觸螢幕開始</div>
+</div>
+
+<div id="tips">點擊聖誕樹召喚聖誕老人　・　點擊樹頂星星開啟祝福　・　點擊禮物觸發驚喜</div>
+<div id="toast"></div>
+
+<div id="letterOverlay">
+  <div class="letter-card">
+    <h2 class="letter-heading">A Christmas Blessing</h2>
+    <div class="letter-caption">一封來自冬夜的祝福信</div>
+    <canvas id="blessingCanvas" width="800" height="1000"></canvas>
+    <div class="letter-buttons">
+      <button class="primary" id="saveBlessing">儲存祝福圖片</button>
+      <button id="anotherBlessing">再抽一次</button>
+      <button id="closeLetter">關閉信封</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+/* =========================================================
+   基礎場景
+========================================================= */
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color("#081426");
+scene.fog = new THREE.FogExp2("#0b1b30", 0.027);
+
+const camera = new THREE.PerspectiveCamera(
+  43,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  100
+);
+camera.position.set(0, 2.35, 7.4);
+camera.lookAt(0, 1.0, 0);
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: false,
+  powerPreference: "high-performance"
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.055;
+controls.enablePan = false;
+controls.minDistance = 4.0;
+controls.maxDistance = 11;
+controls.minPolarAngle = 0.35;
+controls.maxPolarAngle = Math.PI * 0.49;
+controls.target.set(0, 1.0, 0);
+controls.update();
+
+scene.add(new THREE.HemisphereLight(0xc7e4ff, 0x17253a, 0.8));
+
+const moonLight = new THREE.DirectionalLight(0xc8e3ff, 1.05);
+moonLight.position.set(-4, 7, 5);
+scene.add(moonLight);
+
+const coolFill = new THREE.PointLight(0x729dce, 0.55, 10);
+coolFill.position.set(3, 2.7, 3);
+scene.add(coolFill);
+
+const groundLight = new THREE.PointLight(0x9bcaff, 0.32, 12);
+groundLight.position.set(0, 0.35, 2);
+scene.add(groundLight);
+
+/* =========================================================
+   雪地與遠方地平線
+========================================================= */
+
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(28, 100),
+  new THREE.MeshStandardMaterial({
+    color: "#c0d3e4",
+    roughness: 0.96,
+    metalness: 0
+  })
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.045;
+scene.add(ground);
+
+const snowField = new THREE.Mesh(
+  new THREE.CircleGeometry(12, 100),
+  new THREE.MeshStandardMaterial({
+    color: "#d7e7f4",
+    roughness: 0.98,
+    metalness: 0
+  })
+);
+snowField.rotation.x = -Math.PI / 2;
+snowField.position.y = -0.025;
+scene.add(snowField);
+
+// 遠方微弱地平線光，不使用強烈光暈
+const horizon = new THREE.Mesh(
+  new THREE.PlaneGeometry(30, 2.5),
+  new THREE.MeshBasicMaterial({
+    color: "#315b83",
+    transparent: true,
+    opacity: 0.105,
+    depthWrite: false
+  })
+);
+horizon.position.set(0, 0.45, -11);
+scene.add(horizon);
+
+// 雪地細微起伏
+const snowTextureCanvas = document.createElement("canvas");
+snowTextureCanvas.width = 512;
+snowTextureCanvas.height = 512;
+const snowCtx = snowTextureCanvas.getContext("2d");
+snowCtx.fillStyle = "#d4e2ef";
+snowCtx.fillRect(0, 0, 512, 512);
+
+for (let i = 0; i < 2400; i++) {
+  const x = Math.random() * 512;
+  const y = Math.random() * 512;
+  const r = Math.random() * 1.3;
+  snowCtx.fillStyle = Math.random() > 0.5
+    ? "rgba(255,255,255,.20)"
+    : "rgba(70,110,150,.045)";
+  snowCtx.beginPath();
+  snowCtx.arc(x, y, r, 0, Math.PI * 2);
+  snowCtx.fill();
+}
+const snowTexture = new THREE.CanvasTexture(snowTextureCanvas);
+snowTexture.wrapS = snowTexture.wrapT = THREE.RepeatWrapping;
+snowTexture.repeat.set(5, 5);
+ground.material.map = snowTexture;
+ground.material.needsUpdate = true;
+
+/* =========================================================
+   雪花粒子：總數控制在 1000 以下
+========================================================= */
+
+const SNOW_COUNT = 620;
+const snowPositions = new Float32Array(SNOW_COUNT * 3);
+const snowSpeeds = new Float32Array(SNOW_COUNT);
+const snowSizes = new Float32Array(SNOW_COUNT);
+
+for (let i = 0; i < SNOW_COUNT; i++) {
+  snowPositions[i * 3] = (Math.random() - 0.5) * 15;
+  snowPositions[i * 3 + 1] = Math.random() * 9;
+  snowPositions[i * 3 + 2] = (Math.random() - 0.5) * 13;
+  snowSpeeds[i] = 0.28 + Math.random() * 0.48;
+  snowSizes[i] = 0.018 + Math.random() * 0.035;
+}
+
+const snowGeometry = new THREE.BufferGeometry();
+snowGeometry.setAttribute(
+  "position",
+  new THREE.BufferAttribute(snowPositions, 3)
+);
+snowGeometry.setAttribute(
+  "aSize",
+  new THREE.BufferAttribute(snowSizes, 1)
+);
+
+const snowMaterial = new THREE.PointsMaterial({
+  color: "#eaf5ff",
+  size: 0.045,
+  transparent: true,
+  opacity: 0.7,
+  depthWrite: false,
+  sizeAttenuation: true
+});
+
+const snowParticles = new THREE.Points(snowGeometry, snowMaterial);
+scene.add(snowParticles);
+
+/* =========================================================
+   星點背景
+========================================================= */
+
+const SKY_STARS = 230;
+const skyStarPositions = new Float32Array(SKY_STARS * 3);
+
+for (let i = 0; i < SKY_STARS; i++) {
+  const radius = 12 + Math.random() * 18;
+  const angle = Math.random() * Math.PI * 2;
+  skyStarPositions[i * 3] = Math.cos(angle) * radius;
+  skyStarPositions[i * 3 + 1] = Math.random() * 13 + 1;
+  skyStarPositions[i * 3 + 2] = -8 - Math.random() * 17;
+}
+
+const skyGeometry = new THREE.BufferGeometry();
+skyGeometry.setAttribute(
+  "position",
+  new THREE.BufferAttribute(skyStarPositions, 3)
+);
+
+const skyStars = new THREE.Points(
+  skyGeometry,
+  new THREE.PointsMaterial({
+    color: "#b8d9f5",
+    size: 0.026,
+    transparent: true,
+    opacity: 0.65,
+    depthWrite: false
+  })
+);
+scene.add(skyStars);
+
+/* =========================================================
+   聖誕樹：高度約 2 公尺
+   使用圓潤枝葉群、針葉細節及局部霜雪
+========================================================= */
+
+const tree = new THREE.Group();
+tree.position.set(0, 0, 0);
+scene.add(tree);
+
+const treeParts = new THREE.Group();
+tree.add(treeParts);
+
+const treeMaterials = [
+  new THREE.MeshStandardMaterial({
+    color: "#173b4d",
+    roughness: 0.9,
+    metalness: 0.02
+  }),
+  new THREE.MeshStandardMaterial({
+    color: "#204c60",
+    roughness: 0.88,
+    metalness: 0.02
+  }),
+  new THREE.MeshStandardMaterial({
+    color: "#28596d",
+    roughness: 0.88,
+    metalness: 0.02
+  }),
+  new THREE.MeshStandardMaterial({
+    color: "#153448",
+    roughness: 0.92,
+    metalness: 0
+  })
+];
+
+const snowMaterials = [
+  new THREE.MeshStandardMaterial({
+    color: "#d8eaff",
+    roughness: 0.92,
+    metalness: 0.02
+  }),
+  new THREE.MeshStandardMaterial({
+    color: "#c4def3",
+    roughness: 0.94,
+    metalness: 0
+  })
+];
+
+const trunk = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.045, 0.09, 1.5, 10),
+  new THREE.MeshStandardMaterial({
+    color: "#4c403b",
+    roughness: 1
+  })
+);
+trunk.position.y = 0.75;
+treeParts.add(trunk);
+
+// 圓潤枝葉：不使用尖銳錐形樹葉
+const foliageGeometry = new THREE.IcosahedronGeometry(1, 2);
+const snowCapGeometry = new THREE.IcosahedronGeometry(1, 1);
+
+// 每層由多個圓潤枝葉群組成
+const LAYERS = 13;
+const foliageObjects = [];
+
+for (let layer = 0; layer < LAYERS; layer++) {
+  const y = 0.22 + layer * 0.125;
+  const layerRadius = 0.83 * (1 - layer / 14.1);
+  const branchCount = 7 + (layer % 3);
+
+  for (let j = 0; j < branchCount; j++) {
+    const angle = (j / branchCount) * Math.PI * 2 + layer * 0.31;
+    const radius = layerRadius * (0.57 + Math.random() * 0.18);
+
+    const x = Math.cos(angle) * radius;
+    const z = Math.sin(angle) * radius;
+
+    const foliage = new THREE.Mesh(
+      foliageGeometry,
+      treeMaterials[(layer + j) % treeMaterials.length]
+    );
+
+    foliage.position.set(x, y + (Math.random() - 0.5) * 0.055, z);
+    foliage.scale.set(
+      0.22 + Math.random() * 0.045,
+      0.12 + Math.random() * 0.035,
+      0.22 + Math.random() * 0.045
+    );
+    foliage.rotation.y = angle;
+    foliage.rotation.z = (Math.random() - 0.5) * 0.24;
+    treeParts.add(foliage);
+    foliageObjects.push({ mesh: foliage, height: y });
+
+    // 枝葉上方局部積雪，不覆蓋整個枝葉
+    if (j % 2 === 0 || Math.random() > 0.45) {
+      const snowCap = new THREE.Mesh(
+        snowCapGeometry,
+        snowMaterials[(j + layer) % snowMaterials.length]
+      );
+      snowCap.position.set(
+        x + Math.cos(angle) * 0.018,
+        y + 0.045,
+        z + Math.sin(angle) * 0.018
+      );
+      snowCap.scale.set(
+        0.17 + Math.random() * 0.025,
+        0.035 + Math.random() * 0.015,
+        0.16 + Math.random() * 0.025
+      );
+      snowCap.rotation.y = angle;
+      treeParts.add(snowCap);
+      foliageObjects.push({ mesh: snowCap, height: y });
+    }
+  }
+}
+
+// 使用 InstancedMesh 製作柔和針葉細節
+const needleGeometry = new THREE.SphereGeometry(0.025, 5, 4);
+const needleMaterial = new THREE.MeshStandardMaterial({
+  color: "#6f9eae",
+  roughness: 0.9
+});
+
+const needleCount = 280;
+const needleInstances = new THREE.InstancedMesh(
+  needleGeometry,
+  needleMaterial,
+  needleCount
+);
+const dummy = new THREE.Object3D();
+
+for (let i = 0; i < needleCount; i++) {
+  const y = 0.25 + Math.random() * 1.58;
+  const radius = 0.78 * (1 - y / 2.15);
+  const angle = Math.random() * Math.PI * 2;
+  const r = radius * (0.45 + Math.random() * 0.58);
+
+  dummy.position.set(
+    Math.cos(angle) * r,
+    y,
+    Math.sin(angle) * r
+  );
+
+  dummy.scale.set(
+    0.65 + Math.random() * 0.5,
+    0.5 + Math.random() * 0.5,
+    1.2 + Math.random() * 0.7
+  );
+  dummy.rotation.set(
+    Math.random() * 0.5,
+    angle,
+    Math.random() * 0.5
+  );
+  dummy.updateMatrix();
+  needleInstances.setMatrixAt(i, dummy.matrix);
+}
+treeParts.add(needleInstances);
+
+// 樹體初始隱藏，動畫時逐漸顯現
+treeParts.scale.set(1, 0.001, 1);
+treeParts.visible = false;
+
+/* =========================================================
+   樹上裝飾：金色、冰藍球飾、雪花、鈴鐺
+========================================================= */
+
+const ornaments = new THREE.Group();
+tree.add(ornaments);
+const ornamentItems = [];
+
+const goldBallMaterial = new THREE.MeshStandardMaterial({
+  color: "#c9a75e",
+  metalness: 0.68,
+  roughness: 0.28
+});
+
+const blueBallMaterial = new THREE.MeshStandardMaterial({
+  color: "#8ebbdc",
+  metalness: 0.45,
+  roughness: 0.24
+});
+
+const silverBallMaterial = new THREE.MeshStandardMaterial({
+  color: "#dcecff",
+  metalness: 0.6,
+  roughness: 0.2
+});
+
+for (let i = 0; i < 23; i++) {
+  const y = 0.28 + Math.random() * 1.48;
+  const r = 0.78 * (1 - y / 2.1);
+  const a = i * 2.399;
+  const material = i % 3 === 0
+    ? goldBallMaterial
+    : i % 3 === 1
+      ? blueBallMaterial
+      : silverBallMaterial;
+
+  const ball = new THREE.Mesh(
+    new THREE.SphereGeometry(0.045 + Math.random() * 0.012, 12, 10),
+    material
+  );
+  ball.position.set(Math.cos(a) * r, y, Math.sin(a) * r);
+  ornaments.add(ball);
+  ornamentItems.push(ball);
+}
+
+// 小型雪花吊飾
+function createSnowflake(size = 0.09) {
+  const group = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({
+    color: "#d8efff",
+    metalness: 0.35,
+    roughness: 0.35
+  });
+
+  for (let i = 0; i < 6; i++) {
+    const angle = i * Math.PI / 3;
+    const bar = new THREE.Mesh(
+      new THREE.BoxGeometry(size, 0.012, 0.012),
+      mat
+    );
+    bar.rotation.z = angle;
+    group.add(bar);
+
+    const tip = new THREE.Mesh(
+      new THREE.SphereGeometry(0.012, 6, 5),
+      mat
+    );
+    tip.position.set(
+      Math.cos(angle) * size * 0.5,
+      Math.sin(angle) * size * 0.5,
+      0
+    );
+    group.add(tip);
+  }
+  return group;
+}
+
+for (let i = 0; i < 8; i++) {
+  const y = 0.48 + Math.random() * 1.25;
+  const r = 0.75 * (1 - y / 2.1);
+  const a = i * 2.4 + 0.5;
+  const flake = createSnowflake(0.085);
+  flake.position.set(Math.cos(a) * r, y, Math.sin(a) * r);
+  flake.rotation.z = Math.random() * 0.5;
+  ornaments.add(flake);
+  ornamentItems.push(flake);
+}
+
+// 金色鈴鐺
+const bellMaterial = new THREE.MeshStandardMaterial({
+  color: "#d7b66e",
+  metalness: 0.72,
+  roughness: 0.24
+});
+
+for (let i = 0; i < 6; i++) {
+  const y = 0.4 + i * 0.22;
+  const r = 0.78 * (1 - y / 2.1);
+  const a = i * 2.5 + 1.1;
+
+  const bell = new THREE.Mesh(
+    new THREE.SphereGeometry(0.047, 10, 8),
+    bellMaterial
+  );
+  bell.scale.set(1, 0.85, 1);
+  bell.position.set(Math.cos(a) * r, y, Math.sin(a) * r);
+  ornaments.add(bell);
+
+  const opening = new THREE.Mesh(
+    new THREE.TorusGeometry(0.018, 0.006, 5, 10),
+    goldBallMaterial
+  );
+  opening.position.copy(bell.position);
+  opening.position.y -= 0.035;
+  ornaments.add(opening);
+  ornamentItems.push(bell);
+}
+
+/* =========================================================
+   樹頂五角星：視覺焦點，但控制亮度
+========================================================= */
+
+const starGroup = new THREE.Group();
+starGroup.position.set(0, 2.03, 0);
+tree.add(starGroup);
+
+const starShape = new THREE.Shape();
+for (let i = 0; i < 10; i++) {
+  const angle = Math.PI / 2 + i * Math.PI / 5;
+  const radius = i % 2 === 0 ? 0.145 : 0.067;
+  const x = Math.cos(angle) * radius;
+  const y = Math.sin(angle) * radius;
+  if (i === 0) starShape.moveTo(x, y);
+  else starShape.lineTo(x, y);
+}
+starShape.closePath();
+
+const starMaterial = new THREE.MeshStandardMaterial({
+  color: "#f5e5b9",
+  emissive: "#b88c42",
+  emissiveIntensity: 0.42,
+  metalness: 0.55,
+  roughness: 0.25
+});
+
+const starMesh = new THREE.Mesh(
+  new THREE.ExtrudeGeometry(starShape, {
+    depth: 0.035,
+    bevelEnabled: true,
+    bevelSegments: 2,
+    steps: 1,
+    bevelSize: 0.009,
+    bevelThickness: 0.009
+  }),
+  starMaterial
+);
+starGroup.add(starMesh);
+
+const starLight = new THREE.PointLight("#f2d99e", 0.45, 2.2);
+starLight.position.set(0, 0, 0.15);
+starGroup.add(starLight);
+
+/* =========================================================
+   地面導引光點：前方往樹的位置延伸
+========================================================= */
+
+const pathGroup = new THREE.Group();
+scene.add(pathGroup);
+
+const pathPoints = [];
+const pathCount = 180;
+
+for (let i = 0; i < pathCount; i++) {
+  const t = i / (pathCount - 1);
+  pathPoints.push(
+    new THREE.Vector3(
+      Math.sin(t * 2.8) * 0.16,
+      0.012,
+      4.8 - t * 4.8
+    )
+  );
+}
+
+const pathGeometry = new THREE.BufferGeometry().setFromPoints(pathPoints);
+const pathMaterial = new THREE.LineBasicMaterial({
+  color: "#b8e5ff",
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending
+});
+const pathLine = new THREE.Line(pathGeometry, pathMaterial);
+pathGroup.add(pathLine);
+
+const guideCount = 90;
+const guidePositions = new Float32Array(guideCount * 3);
+const guideGeometry = new THREE.BufferGeometry();
+guideGeometry.setAttribute(
+  "position",
+  new THREE.BufferAttribute(guidePositions, 3)
+);
+
+const guidePoints = new THREE.Points(
+  guideGeometry,
+  new THREE.PointsMaterial({
+    color: "#d9f1ff",
+    size: 0.045,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  })
+);
+pathGroup.add(guidePoints);
+
+/* =========================================================
+   樹身白藍螺旋星光
+========================================================= */
+
+const spiralGroup = new THREE.Group();
+tree.add(spiralGroup);
+
+const SPIRAL_TURNS = 5.1;
+const SPIRAL_STEPS = 700;
+const spiralPoints = [];
+
+for (let i = 0; i <= SPIRAL_STEPS; i++) {
+  const t = i / SPIRAL_STEPS;
+  const angle = t * Math.PI * 2 * SPIRAL_TURNS;
+  const radius = 0.87 * (1 - t * 0.91);
+
+  spiralPoints.push(
+    new THREE.Vector3(
+      Math.cos(angle) * radius,
+      0.08 + t * 1.88,
+      Math.sin(angle) * radius
+    )
+  );
+}
+
+const spiralGeometry = new THREE.BufferGeometry().setFromPoints(spiralPoints);
+
+const spiralMaterial = new THREE.LineBasicMaterial({
+  color: "#a8dfff",
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+
+const spiralLine = new THREE.Line(spiralGeometry, spiralMaterial);
+spiralGroup.add(spiralLine);
+
+// 螺旋光帶內側的細白光
+const spiralCoreMaterial = new THREE.LineBasicMaterial({
+  color: "#e7f6ff",
+  transparent: true,
+  opacity: 0,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+
+const spiralCore = new THREE.Line(spiralGeometry, spiralCoreMaterial);
+spiralCore.scale.set(0.985, 1, 0.985);
+spiralGroup.add(spiralCore);
+
+// 螺旋粒子：120 顆
+const SPIRAL_PARTICLES = 120;
+const spiralParticlePositions = new Float32Array(SPIRAL_PARTICLES * 3);
+const spiralParticleGeometry = new THREE.BufferGeometry();
+spiralParticleGeometry.setAttribute(
+  "position",
+  new THREE.BufferAttribute(spiralParticlePositions, 3)
+);
+
+const spiralParticles = new THREE.Points(
+  spiralParticleGeometry,
+  new THREE.PointsMaterial({
+    color: "#d8f1ff",
+    size: 0.045,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  })
+);
+tree.add(spiralParticles);
+
+/* =========================================================
+   聖誕老人、雪橇與三隻麋鹿
+========================================================= */
+
+const sleighScene = new THREE.Group();
+scene.add(sleighScene);
+sleighScene.visible = false;
+
+const reindeerMaterial = new THREE.MeshStandardMaterial({
+  color: "#78543d",
+  roughness: 0.85
+});
+const reindeerDark = new THREE.MeshStandardMaterial({
+  color: "#4a3328",
+  roughness: 0.9
+});
+const antlerMaterial = new THREE.MeshStandardMaterial({
+  color: "#c5a36a",
+  metalness: 0.3,
+  roughness: 0.6
+});
+const santaRed = new THREE.MeshStandardMaterial({
+  color: "#8c2635",
+  roughness: 0.86
+});
+const santaWhite = new THREE.MeshStandardMaterial({
+  color: "#eee9df",
+  roughness: 0.9
+});
+const goldMaterial = new THREE.MeshStandardMaterial({
+  color: "#d3ad62",
+  metalness: 0.65,
+  roughness: 0.3
+});
+
+function connectCylinder(parent, start, end, radius, material) {
+  const direction = end.clone().sub(start);
+  const mesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius * 0.75, radius, direction.length(), 7),
+    material
+  );
+  mesh.position.copy(start).add(end).multiplyScalar(0.5);
+  mesh.quaternion.setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0),
+    direction.normalize()
+  );
+  parent.add(mesh);
+  return mesh;
+}
+
+function makeReindeer() {
+  const deer = new THREE.Group();
+
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(0.19, 12, 10),
+    reindeerMaterial
+  );
+  body.scale.set(1.45, 0.78, 0.78);
+  body.position.y = 0.42;
+  deer.add(body);
+
+  const neck = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.065, 0.12, 0.28, 9),
+    reindeerMaterial
+  );
+  neck.position.set(0.15, 0.63, 0);
+  neck.rotation.z = -0.45;
+  deer.add(neck);
+
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.105, 12, 10),
+    reindeerMaterial
+  );
+  head.position.set(0.26, 0.78, 0);
+  head.scale.set(1.15, 1, 0.85);
+  deer.add(head);
+
+  const muzzle = new THREE.Mesh(
+    new THREE.SphereGeometry(0.052, 9, 7),
+    santaWhite
+  );
+  muzzle.position.set(0.34, 0.75, 0);
+  deer.add(muzzle);
+
+  const nose = new THREE.Mesh(
+    new THREE.SphereGeometry(0.025, 8, 8),
+    new THREE.MeshStandardMaterial({ color: "#9b3c4b" })
+  );
+  nose.position.set(0.385, 0.77, 0);
+  deer.add(nose);
+
+  // 兩側耳朵及分枝鹿角
+  for (const side of [-1, 1]) {
+    const z = side * 0.06;
+
+    const ear = new THREE.Mesh(
+      new THREE.SphereGeometry(0.035, 8, 7),
+      reindeerMaterial
+    );
+    ear.position.set(0.18, 0.89, z);
+    ear.scale.set(0.7, 1.8, 0.65);
+    deer.add(ear);
+
+    connectCylinder(
+      deer,
+      new THREE.Vector3(0.22, 0.86, z),
+      new THREE.Vector3(0.19, 1.05, z),
+      0.012,
+      antlerMaterial
+    );
+    connectCylinder(
+      deer,
+      new THREE.Vector3(0.19, 1.0, z),
+      new THREE.Vector3(0.11, 1.09, z),
+      0.009,
+      antlerMaterial
+    );
+    connectCylinder(
+      deer,
+      new THREE.Vector3(0.19, 0.98, z),
+      new THREE.Vector3(0.28, 1.08, z),
+      0.009,
+      antlerMaterial
+    );
+  }
+
+  // 四條腿
+  for (const x of [-0.12, 0.12]) {
+    for (const z of [-0.09, 0.09]) {
+      connectCylinder(
+        deer,
+        new THREE.Vector3(x, 0.36, z),
+        new THREE.Vector3(x - 0.02, 0.09, z),
+        0.027,
+        reindeerDark
+      );
+    }
+  }
+
+  const collar = new THREE.Mesh(
+    new THREE.TorusGeometry(0.085, 0.014, 6, 16),
+    goldMaterial
+  );
+  collar.position.set(0.15, 0.63, 0);
+  collar.rotation.y = Math.PI / 2;
+  deer.add(collar);
+
+  return deer;
+}
+
+const deerModels = [];
+
+for (let i = 0; i < 3; i++) {
+  const deer = makeReindeer();
+  deer.position.set(-1.2 - i * 0.65, 0, (i - 1) * 0.25);
+  sleighScene.add(deer);
+  deerModels.push(deer);
+}
+
+// 雪橇主體
+const sleighBody = new THREE.Group();
+sleighScene.add(sleighBody);
+
+const sleighSeat = new THREE.Mesh(
+  new THREE.BoxGeometry(0.78, 0.23, 0.52),
+  santaRed
+);
+sleighSeat.position.set(0, 0.55, 0);
+sleighBody.add(sleighSeat);
+
+const sleighBack = new THREE.Mesh(
+  new THREE.BoxGeometry(0.13, 0.48, 0.52),
+  santaRed
+);
+sleighBack.position.set(0.34, 0.83, 0);
+sleighBody.add(sleighBack);
+
+for (const z of [-0.23, 0.23]) {
+  const runner = new THREE.Mesh(
+    new THREE.TorusGeometry(0.34, 0.022, 7, 28, Math.PI),
+    goldMaterial
+  );
+  runner.rotation.z = Math.PI;
+  runner.position.set(-0.05, 0.25, z);
+  sleighBody.add(runner);
+}
+
+// 聖誕老人身體
+const santaBody = new THREE.Mesh(
+  new THREE.SphereGeometry(0.22, 14, 12),
+  santaRed
+);
+santaBody.scale.set(0.95, 1.25, 0.9);
+santaBody.position.set(0.02, 0.91, 0);
+sleighBody.add(santaBody);
+
+const santaHead = new THREE.Mesh(
+  new THREE.SphereGeometry(0.13, 14, 12),
+  new THREE.MeshStandardMaterial({
+    color: "#e6c1a4",
+    roughness: 0.85
+  })
+);
+santaHead.position.set(0.02, 1.2, 0);
+sleighBody.add(santaHead);
+
+// 白鬍子
+const beard = new THREE.Mesh(
+  new THREE.SphereGeometry(0.12, 12, 10),
+  santaWhite
+);
+beard.position.set(0.04, 1.11, 0);
+beard.scale.set(0.95, 1.15, 0.9);
+sleighBody.add(beard);
+
+// 帽子及帽球
+const santaHat = new THREE.Mesh(
+  new THREE.ConeGeometry(0.12, 0.27, 12),
+  santaRed
+);
+santaHat.position.set(0.01, 1.4, 0);
+santaHat.rotation.z = -0.13;
+sleighBody.add(santaHat);
+
+const hatPom = new THREE.Mesh(
+  new THREE.SphereGeometry(0.036, 8, 8),
+  santaWhite
+);
+hatPom.position.set(-0.01, 1.54, 0);
+sleighBody.add(hatPom);
+
+// 金色繫帶
+for (let i = 0; i < 3; i++) {
+  connectCylinder(
+    sleighScene,
+    new THREE.Vector3(-0.55, 0.55, (i - 1) * 0.1),
+    new THREE.Vector3(-1.35 - i * 0.62, 0.57, (i - 1) * 0.23),
+    0.012,
+    goldMaterial
+  );
+}
+
+/* =========================================================
+   禮物盒與煙火
+========================================================= */
+
+const giftGroup = new THREE.Group();
+scene.add(giftGroup);
+
+const giftMaterials = [
+  new THREE.MeshStandardMaterial({ color: "#9b3345", roughness: 0.42 }),
+  new THREE.MeshStandardMaterial({ color: "#244e7a", roughness: 0.4 }),
+  new THREE.MeshStandardMaterial({ color: "#b18b4d", roughness: 0.42 }),
+  new THREE.MeshStandardMaterial({ color: "#356c68", roughness: 0.45 })
+];
+
+const ribbonMaterial = new THREE.MeshStandardMaterial({
+  color: "#ead39c",
+  metalness: 0.55,
+  roughness: 0.3
+});
+
+const gifts = [];
+
+function createGift(index) {
+  const group = new THREE.Group();
+
+  const w = 0.17 + Math.random() * 0.09;
+  const h = 0.15 + Math.random() * 0.08;
+  const d = 0.16 + Math.random() * 0.09;
+
+  const box = new THREE.Mesh(
+    new THREE.BoxGeometry(w, h, d),
+    giftMaterials[index % giftMaterials.length]
+  );
+  group.add(box);
+
+  const ribbonA = new THREE.Mesh(
+    new THREE.BoxGeometry(w + 0.006, h + 0.01, 0.024),
+    ribbonMaterial
+  );
+  group.add(ribbonA);
+
+  const ribbonB = new THREE.Mesh(
+    new THREE.BoxGeometry(0.024, h + 0.01, d + 0.006),
+    ribbonMaterial
+  );
+  group.add(ribbonB);
+
+  const bow = new THREE.Mesh(
+    new THREE.TorusGeometry(0.035, 0.008, 6, 12),
+    ribbonMaterial
+  );
+  bow.position.y = h * 0.5 + 0.025;
+  group.add(bow);
+
+  group.position.set(
+    (Math.random() - 0.5) * 2.1,
+    3.5 + Math.random() * 1.5,
+    0.4 + (Math.random() - 0.5) * 1.2
+  );
+
+  giftGroup.add(group);
+
+  gifts.push({
+    mesh: group,
+    velocity: 0,
+    landed: false,
+    clickable: true
+  });
+}
+
+let giftsCreated = false;
+
+function releaseGifts() {
+  if (giftsCreated) return;
+  giftsCreated = true;
+  for (let i = 0; i < 10; i++) {
+    setTimeout(() => createGift(i), i * 260);
+  }
+}
+
+// 煙火粒子
+const fireworkGroup = new THREE.Group();
+scene.add(fireworkGroup);
+
+const fireworkParticles = [];
+
+function explodeAt(position) {
+  const colorChoice = Math.random();
+  const color = colorChoice < 0.34
+    ? "#e9cb82"
+    : colorChoice < 0.67
+      ? "#9edbff"
+      : "#eaf5ff";
+
+  const count = 55;
+
+  for (let i = 0; i < count; i++) {
+    const material = new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 1
+    });
+
+    const particle = new THREE.Mesh(
+      new THREE.SphereGeometry(0.018 + Math.random() * 0.014, 5, 5),
+      material
+    );
+
+    particle.position.copy(position);
+
+    const direction = new THREE.Vector3(
+      Math.random() * 2 - 1,
+      Math.random() * 2 - 1,
+      Math.random() * 2 - 1
+    ).normalize();
+
+    const speed = 0.8 + Math.random() * 2.0;
+
+    fireworkGroup.add(particle);
+    fireworkParticles.push({
+      mesh: particle,
+      velocity: direction.multiplyScalar(speed),
+      life: 1.0 + Math.random() * 0.4
+    });
+  }
+}
+
+/* =========================================================
+   祝福內容與 Canvas 圖片
+========================================================= */
+
+const blessings = [
+  ["願平安如雪花，輕輕落在你的心上。", "May peace fall softly upon your heart."],
+  ["願你的冬日有光，生命有喜樂。", "May your winter be bright and joyful."],
+  ["願每個等待的日子，都有盼望相伴。", "May hope accompany you through every season of waiting."],
+  ["願主的信實成為你腳前的燈。", "May the Lord's faithfulness be a lamp to your path."],
+  ["願愛與和平，常住在你的家中。", "May love and peace dwell in your home."],
+  ["願耶穌降生的盼望，照亮你前方的路。", "May the hope of Jesus' birth light your way."],
+  ["願你所經過的地方，都留下溫暖。", "May every place you go be touched by warmth."],
+  ["願新的一年充滿恩典、勇氣與美好相遇。", "May the year ahead bring grace and beautiful encounters."],
+  ["願你心中有光，腳下有方向。", "May light fill your heart and purpose guide your steps."],
+  ["願上帝的愛，在平凡日子裡給你力量。", "May God's love strengthen you in ordinary days."],
+  ["願每個夜晚都有安穩，每個清晨都有盼望。", "May each night bring rest and each morning hope."],
+  ["願喜樂不只在節日，也在每個平凡日子。", "May joy live in every ordinary day."],
+  ["願基督的平安，成為你心中安定的力量。", "May the peace of Christ steady your heart."],
+  ["願你被愛環繞，也有力量去愛人。", "May you be surrounded by love and empowered to share it."],
+  ["願恩典如星光，在黑夜裡仍然閃耀。", "May grace shine like starlight through the night."],
+  ["願這個聖誕，為你帶來真正的平安與喜樂。", "May this Christmas bring you true peace and joy."]
+];
+
+const blessingCanvas = document.getElementById("blessingCanvas");
+const blessingCtx = blessingCanvas.getContext("2d");
+let currentBlessing = 0;
+
+function drawBlessing(index) {
+  currentBlessing = index;
+  const ctx = blessingCtx;
+  const w = blessingCanvas.width;
+  const h = blessingCanvas.height;
+
+  const gradient = ctx.createLinearGradient(0, 0, w, h);
+  gradient.addColorStop(0, "#102743");
+  gradient.addColorStop(0.55, "#173b5a");
+  gradient.addColorStop(1, "#09172b");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, w, h);
+
+  // 霜雪夜空
+  for (let i = 0; i < 180; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const r = Math.random() * 2.2 + 0.5;
+    ctx.fillStyle = `rgba(220,240,255,${Math.random() * 0.6 + 0.15})`;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 遠方光暈
+  const glow = ctx.createRadialGradient(w / 2, 450, 5, w / 2, 450, 330);
+  glow.addColorStop(0, "rgba(174,219,255,.25)");
+  glow.addColorStop(1, "rgba(174,219,255,0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 100, w, 650);
+
+  // 簡潔聖誕樹剪影
+  ctx.fillStyle = "#b6d8ed";
+  ctx.globalAlpha = 0.82;
+
+  for (let layer = 0; layer < 4; layer++) {
+    const top = 285 + layer * 75;
+    const base = top + 155;
+    const half = 75 + layer * 28;
+    ctx.beginPath();
+    ctx.moveTo(w / 2, top);
+    ctx.lineTo(w / 2 - half, base);
+    ctx.lineTo(w / 2 + half, base);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "#9a7a51";
+  ctx.fillRect(w / 2 - 19, 690, 38, 75);
+  ctx.globalAlpha = 1;
+
+  // 樹頂星
+  ctx.save();
+  ctx.translate(w / 2, 265);
+  ctx.fillStyle = "#f2d99a";
+  ctx.shadowColor = "#f2d99a";
+  ctx.shadowBlur = 18;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + i * Math.PI / 5;
+    const r = i % 2 === 0 ? 27 : 12;
+    const x = Math.cos(a) * r;
+    const y = Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  // 文字區
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#f0f7ff";
+  ctx.font = "34px Georgia, serif";
+  ctx.fillText("Merry Christmas", w / 2, 825);
+
+  ctx.fillStyle = "#c8e0f4";
+  ctx.font = "22px sans-serif";
+  ctx.fillText(blessings[index][0], w / 2, 885);
+
+  ctx.fillStyle = "#d8e9f7";
+  ctx.font = "italic 19px Georgia, serif";
+  ctx.fillText(blessings[index][1], w / 2, 930);
+
+  ctx.fillStyle = "rgba(210,232,250,.65)";
+  ctx.font = "15px Georgia, serif";
+  ctx.fillText("A night full of light and miracles", w / 2, 970);
+}
+
+function openLetter() {
+  const index = Math.floor(Math.random() * blessings.length);
+  drawBlessing(index);
+  document.getElementById("letterOverlay").classList.add("open");
+}
+
+document.getElementById("anotherBlessing").addEventListener("click", () => {
+  let next = Math.floor(Math.random() * blessings.length);
+  if (next === currentBlessing) next = (next + 1) % blessings.length;
+  drawBlessing(next);
+});
+
+document.getElementById("closeLetter").addEventListener("click", () => {
+  document.getElementById("letterOverlay").classList.remove("open");
+});
+
+document.getElementById("saveBlessing").addEventListener("click", () => {
+  const link = document.createElement("a");
+  link.download = "Christmas-Blessing.png";
+  link.href = blessingCanvas.toDataURL("image/png");
+  link.click();
+  showToast("祝福圖片已準備儲存");
+});
+
+/* =========================================================
+   互動與轉場狀態
+========================================================= */
+
+const intro = document.getElementById("intro");
+const tips = document.getElementById("tips");
+const toast = document.getElementById("toast");
+
+let started = false;
+let elapsed = 0;
+let treeProgress = 0;
+let sleighActive = false;
+let sleighPosition = 7;
+let giftTimer = 0;
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 2300);
+}
+
+function startExperience() {
+  if (started) return;
+  started = true;
+  elapsed = 0;
+  intro.classList.add("hide");
+  tips.classList.add("visible");
+  showToast("星光即將為你點亮聖誕夜");
+}
+
+// 同時支援 pointerdown、touchstart、click。
+// 使用狀態鎖避免手機一次觸控觸發多次。
+let startLocked = false;
+
+function requestStart(event) {
+  if (started || startLocked) return;
+  startLocked = true;
+  startExperience();
+  setTimeout(() => { startLocked = false; }, 700);
+}
+
+intro.addEventListener("pointerdown", requestStart, { passive: true });
+intro.addEventListener("touchstart", requestStart, { passive: true });
+intro.addEventListener("click", requestStart);
+
+/* =========================================================
+   點擊判定：拖曳旋轉不會誤觸
+========================================================= */
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let pointerStartX = 0;
+let pointerStartY = 0;
+let pointerMoved = false;
+
+renderer.domElement.addEventListener("pointerdown", (event) => {
+  pointerStartX = event.clientX;
+  pointerStartY = event.clientY;
+  pointerMoved = false;
+});
+
+renderer.domElement.addEventListener("pointermove", (event) => {
+  if (
+    Math.abs(event.clientX - pointerStartX) > 8 ||
+    Math.abs(event.clientY - pointerStartY) > 8
+  ) {
+    pointerMoved = true;
+  }
+});
+
+renderer.domElement.addEventListener("pointerup", (event) => {
+  if (!started || pointerMoved) return;
+  if (document.getElementById("letterOverlay").classList.contains("open")) return;
+
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(pointer, camera);
+
+  // 星星優先判定
+  const starHits = raycaster.intersectObject(starGroup, true);
+  if (starHits.length > 0 && treeProgress > 0.85) {
+    openLetter();
+    return;
+  }
+
+  // 禮物點擊
+  const giftMeshes = [];
+  gifts.forEach(g => {
+    if (g.clickable) {
+      g.mesh.traverse(o => {
+        if (o.isMesh) giftMeshes.push(o);
+      });
+    }
+  });
+
+  const giftHits = raycaster.intersectObjects(giftMeshes, false);
+  if (giftHits.length > 0) {
+    let obj = giftHits[0].object;
+    let giftRoot = obj;
+    while (giftRoot.parent && giftRoot.parent !== giftGroup) {
+      giftRoot = giftRoot.parent;
+    }
+
+    const gift = gifts.find(g => g.mesh === giftRoot);
+    if (gift && gift.clickable) {
+      gift.clickable = false;
+      explodeAt(gift.mesh.position.clone());
+      gift.mesh.visible = false;
+      showToast("聖誕驚喜！願你收穫滿滿的喜樂");
+      return;
+    }
+  }
+
+  // 樹木點擊
+  const treeHits = raycaster.intersectObject(treeParts, true);
+  if (treeHits.length > 0 && treeProgress > 0.85) {
+    summonSanta();
+  }
+});
+
+function summonSanta() {
+  if (sleighActive) return;
+  sleighActive = true;
+  sleighPosition = 7;
+  sleighScene.visible = true;
+  giftTimer = 0;
+  giftsCreated = false;
+  showToast("聖誕老人帶著禮物來了！");
+}
+
+/* =========================================================
+   動畫主迴圈
+========================================================= */
+
+const clock = new THREE.Clock();
+let previousTime = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const dt = Math.min(clock.getDelta(), 0.04);
+  const time = clock.elapsedTime;
+
+  controls.update();
+
+  // 降雪
+  const positions = snowGeometry.attributes.position.array;
+
+  for (let i = 0; i < SNOW_COUNT; i++) {
+    positions[i * 3] += Math.sin(time * 0.45 + i) * 0.12 * dt;
+    positions[i * 3 + 1] -= snowSpeeds[i] * dt;
+    positions[i * 3 + 2] += 0.035 * dt;
+
+    if (positions[i * 3 + 1] < -0.1) {
+      positions[i * 3 + 1] = 8.5 + Math.random() * 1.5;
+      positions[i * 3] = (Math.random() - 0.5) * 15;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 13;
+    }
+
+    if (positions[i * 3 + 2] > 7) {
+      positions[i * 3 + 2] = -7;
+    }
+  }
+
+  snowGeometry.attributes.position.needsUpdate = true;
+
+  // 星點輕微閃爍
+  skyStars.rotation.y += dt * 0.002;
+
+  if (started) {
+    elapsed += dt;
+  }
+
+  /*
+    第一階段：0~3 秒
+    夜空、雪地與微弱地平線。
+  */
+
+  /*
+    第二階段：3~6 秒
+    地面光點由鏡頭前方往樹的位置延伸。
+  */
+  let pathProgress = 0;
+
+  if (started) {
+    pathProgress = THREE.MathUtils.clamp((elapsed - 3) / 3, 0, 1);
+  }
+
+  pathMaterial.opacity = pathProgress * 0.56;
+  guidePoints.material.opacity = pathProgress * 0.85;
+
+  const guideArray = guideGeometry.attributes.position.array;
+
+  for (let i = 0; i < guideCount; i++) {
+    const t = i / (guideCount - 1);
+    const active = t <= pathProgress;
+    const p = pathPoints[Math.min(
+      pathPoints.length - 1,
+      Math.floor(t * (pathPoints.length - 1))
+    )];
+
+    guideArray[i * 3] = active ? p.x : 0;
+    guideArray[i * 3 + 1] = active ? 0.025 : -5;
+    guideArray[i * 3 + 2] = active ? p.z : 0;
+  }
+
+  guideGeometry.attributes.position.needsUpdate = true;
+
+  /*
+    第三階段：6~10 秒
+    聖誕樹由下往上逐步顯現。
+  */
+  if (started) {
+    treeProgress = THREE.MathUtils.clamp((elapsed - 6) / 4, 0, 1);
+  }
+
+  if (treeProgress > 0) {
+    treeParts.visible = true;
+    treeParts.scale.y = Math.max(0.001, treeProgress);
+  }
+
+  // 裝飾物隨樹木生成而逐漸顯現
+  ornaments.visible = treeProgress > 0.3;
+  ornaments.scale.setScalar(Math.max(0.001, treeProgress));
+
+  // 星星在樹接近完成時出現
+  starGroup.visible = treeProgress > 0.83;
+  starGroup.scale.setScalar(
+    THREE.MathUtils.clamp((treeProgress - 0.83) / 0.17, 0, 1)
+  );
+
+  starMesh.material.emissiveIntensity = 0.42 + Math.sin(time * 2) * 0.08;
+  starGroup.rotation.y = Math.sin(time * 0.7) * 0.08;
+
+  /*
+    螺旋光線隨樹木生成向上推進。
+    軌跡緊貼樹身，不會離樹太遠。
+  */
+  const spiralProgress = treeProgress;
+
+  spiralMaterial.opacity = spiralProgress * 0.62;
+  spiralCoreMaterial.opacity = spiralProgress * 0.58;
+  spiralGeometry.setDrawRange(
+    0,
+    Math.max(2, Math.floor(SPIRAL_STEPS * spiralProgress))
+  );
+
+  spiralCore.geometry.setDrawRange(
+    0,
+    Math.max(2, Math.floor(SPIRAL_STEPS * spiralProgress))
+  );
+
+  const spiralArray = spiralParticleGeometry.attributes.position.array;
+
+  for (let i = 0; i < SPIRAL_PARTICLES; i++) {
+    const t = (i / SPIRAL_PARTICLES + time * 0.035) % 1;
+    const angle = t * Math.PI * 2 * SPIRAL_TURNS;
+    const radius = 0.87 * (1 - t * 0.91);
+
+    spiralArray[i * 3] = Math.cos(angle) * radius;
+    spiralArray[i * 3 + 1] = 0.08 + t * 1.88;
+    spiralArray[i * 3 + 2] = Math.sin(angle) * radius;
+  }
+
+  spiralParticleGeometry.attributes.position.needsUpdate = true;
+  spiralParticles.material.opacity = spiralProgress * 0.82;
+
+  // 樹木不過曝，只有裝飾物有柔和反光
+  treeParts.visible = treeProgress > 0;
+  treeParts.scale.y = Math.max(0.001, treeProgress);
+
+  // 樹體自然微微晃動
+  tree.rotation.y = Math.sin(time * 0.16) * 0.018;
+
+  /*
+    聖誕老人與麋鹿：
+    從遠方進場，沿畫面由右往左移動。
+  */
+  if (sleighActive) {
+    sleighPosition -= dt * 2.0;
+    sleighScene.position.set(
+      sleighPosition,
+      0.18 + Math.sin(time * 2.5) * 0.035,
+      -0.8
+    );
+
+    sleighScene.rotation.y = Math.PI;
+    sleighScene.rotation.z = Math.sin(time * 2) * 0.012;
+
+    // 麋鹿腿部小幅步行擺動
+    deerModels.forEach((deer, index) => {
+      deer.position.y = Math.abs(Math.sin(time * 7 + index)) * 0.025;
+    });
+
+    giftTimer += dt;
+
+    // 雪橇經過時，分批釋放禮物
+    if (giftTimer > 0.55 && sleighPosition > -5.2) {
+      createGift(gifts.length);
+      giftTimer = 0;
+    }
+
+    if (sleighPosition < -7) {
+      sleighActive = false;
+      sleighScene.visible = false;
+      releaseGifts();
+    }
+  }
+
+  /*
+    禮物重力下落。
+    落地後留在樹下，可點擊觸發煙火。
+  */
+  for (const gift of gifts) {
+    if (!gift.landed && gift.mesh.visible) {
+      gift.velocity -= 2.0 * dt;
+      gift.mesh.position.y += gift.velocity * dt;
+      gift.mesh.rotation.x += dt * 0.45;
+      gift.mesh.rotation.y += dt * 0.65;
+
+      if (gift.mesh.position.y < 0.15) {
+        gift.mesh.position.y = 0.15;
+        gift.velocity = 0;
+        gift.landed = true;
+        gift.mesh.rotation.x = 0;
+        gift.mesh.rotation.z = 0;
+      }
+    }
+  }
+
+  /*
+    煙火粒子更新
+  */
+  for (let i = fireworkParticles.length - 1; i >= 0; i--) {
+    const particle = fireworkParticles[i];
+
+    particle.mesh.position.addScaledVector(particle.velocity, dt);
+    particle.velocity.y -= 0.6 * dt;
+    particle.life -= dt;
+    particle.mesh.material.opacity = Math.max(0, particle.life);
+
+    if (particle.life <= 0) {
+      fireworkGroup.remove(particle.mesh);
+      particle.mesh.geometry.dispose();
+      particle.mesh.material.dispose();
+      fireworkParticles.splice(i, 1);
+    }
+  }
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+/* =========================================================
+   視窗尺寸調整
+========================================================= */
+
+function resizeRenderer() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.6));
+}
+
+window.addEventListener("resize", resizeRenderer);
+window.addEventListener("orientationchange", () => {
+  setTimeout(resizeRenderer, 250);
+});
+
+</script>
+</body>
+</html>
